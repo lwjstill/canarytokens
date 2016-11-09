@@ -28,7 +28,16 @@ class EmailOutputChannel(OutputChannel):
         elif settings.MANDRILL_API_KEY:
             self.mandrill_send(msg=msg,canarydrop=canarydrop)
         else:
-            log.err("No email settings found")
+            log.err("Trying SMTP")
+			
+			mail = msg['body']
+			mail['Subject'] = msg['subject']
+			mail['From'] = '{name} <{address}>'.format(name=msg['from_display'],address=msg['from_address'])
+			mail['To'] = canarydrop['alert_email_recipient']
+			
+			s = smtplib.SMTP('mx3.lw.com')
+			s.sendmail()
+			s.quit()
 
     def mailgun_send(self, msg=None, canarydrop=None):
         try:
