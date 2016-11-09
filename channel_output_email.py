@@ -29,15 +29,17 @@ class EmailOutputChannel(OutputChannel):
             self.mandrill_send(msg=msg,canarydrop=canarydrop)
         else:
             log.err("Trying SMTP")
-			
-			mail = msg['body']
-			mail['Subject'] = msg['subject']
-			mail['From'] = '{name} <{address}>'.format(name=msg['from_display'],address=msg['from_address'])
-			mail['To'] = canarydrop['alert_email_recipient']
-			
-			s = smtplib.SMTP('mx3.lw.com')
-			s.sendmail()
-			s.quit()
+            
+            data = {
+                'from': '{name} <{address}>'.format(name=msg['from_display'],address=msg['from_address']),
+                'to': canarydrop['alert_email_recipient'],
+                'subject': msg['subject'],
+                'text':  msg['body']
+            
+            log.err(data)
+            send = smtplib.SMTP('mx3.lw.com', 25, 'crl3certissue.cloudapp.net')
+            send.sendmail(data['from'], data['to'],data)
+            send.quit()
 
     def mailgun_send(self, msg=None, canarydrop=None):
         try:
