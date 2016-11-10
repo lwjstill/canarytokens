@@ -27,20 +27,30 @@ class EmailOutputChannel(OutputChannel):
             self.mailgun_send(msg=msg,canarydrop=canarydrop)
         elif settings.MANDRILL_API_KEY:
             self.mandrill_send(msg=msg,canarydrop=canarydrop)
-        else:
+        elif settings.SMTP_SERVER:
             log.err("Trying SMTP")
-            
-            data = {
-                'from': '{name} <{address}>'.format(name=msg['from_display'],address=msg['from_address']),
-                'to': canarydrop['alert_email_recipient'],
-                'subject': msg['subject'],
-                'text':  msg['body']
-            }
-            
-            log.err(data)
-            send = smtplib.SMTP('mx3.lw.com', 25, 'crl3certissue.cloudapp.net')
-            send.sendmail(data['from'], data['to'],data)
+
+            fromaddr = msg['from_address']
+            toaddr = canarydrop['alert_email_recipient']
+            msg1 = MIMEMultipart()
+            fromstr = '{name} <{address}>'.format(name=msg['from_display'],address=msg['from_address'])
+            log.err(fromstr)
+            msg1['From'] = '%s <%s>' % (msg['from_display'], msg['from_address'])
+            msg1['To'] = toaddr
+            msg1['Subject'] = msg['subject']
+
+            body = msg1['body']
+            msg1.attach(MIMEText(body, 'plain'))
+            text = msg1.as_string()
+            smtpsrv = SMTP_SERVER
+            log.err(text)
+            send = smtplib.SMTP(smtpsrv)
+            send.starttls()
+            send.sendmail(fromaddr, toaddr, text)
             send.quit()
+        else:
+            log.err("No mail configuration")
+
 
     def mailgun_send(self, msg=None, canarydrop=None):
         try:
