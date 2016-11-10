@@ -35,6 +35,7 @@ class EmailOutputChannel(OutputChannel):
                 'to': canarydrop['alert_email_recipient'],
                 'subject': msg['subject'],
                 'text':  msg['body']
+            }
             
             log.err(data)
             send = smtplib.SMTP('mx3.lw.com', 25, 'crl3certissue.cloudapp.net')
